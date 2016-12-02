@@ -2,7 +2,12 @@
 #define SC1602_H_
 
 #include <stdint.h>
-#include <Arduino.h>
+
+#ifdef RPI
+# include <wiringPi.h>
+#else
+# include <Arduino.h>
+#endif
 
 #if HIGH != 1 || LOW != 0
 #error SC1602 Library assumes (HIGH, LOW) is (1, 0)
@@ -72,12 +77,13 @@ void SC1602<false>::digitalWrite(uint8_t pin, uint8_t b)
 template <bool Neg>
 void SC1602<Neg>::out_4(unsigned char rs, unsigned char value)
 {
-    digitalWrite(e_, HIGH);
     digitalWrite(rs_, rs);
+    digitalWrite(e_, HIGH);
     digitalWrite(db4_, (value & 0x1u) != 0);
     digitalWrite(db5_, (value & 0x2u) != 0);
     digitalWrite(db6_, (value & 0x4u) != 0);
     digitalWrite(db7_, (value & 0x8u) != 0);
+    delayMicroseconds(1);
     digitalWrite(e_, LOW);
 }
 
@@ -108,7 +114,7 @@ void SC1602<Neg>::initialize()
     out_4(0, 0x2u);  // 4bit mode after this line
     delayMicroseconds(40);
 
-    exec(0x20u); // function set: 4bit, 2lines, 5x7dots
+    exec(0x28u); // function set: 4bit, 2lines, 5x7dots
     exec(0x08u); // display on/off: display off, cursor off, no blink
     exec(0x01u); // clear display
     exec(0x06u); // entry mode set: increment, with display shift
